@@ -24,17 +24,19 @@ router.post('/createuser', [
     body('password', "Password must contain at least 5 characters!").isLength({min: 5}),
 ] , async (req, res)=>{
     
+    let success = false;
+    
     // If there are errors, return bad request and the errors
     const errors = validationResult(req);
     if(!errors.isEmpty()){
-        return res.status(400).json({errors: errors.array()});
+        return res.status(400).json({success, errors: errors.array()});
     }
 
     try{
     // check whether the user with this email already exists
     let user = await User.findOne({email: req.body.email});
     if(user){
-        return res.status(400).json({error: "Sorry, this email is already associated with another user!"});
+        return res.status(400).json({success, error: "Sorry, this email is already associated with another user!"});
     }
 
     // const user  = User(req.body);
@@ -62,7 +64,8 @@ router.post('/createuser', [
 
     const authToken = jwt.sign(data, JWT_SECRET);
 
-    res.json(authToken);
+    success = true;
+    res.json({success, authToken});
 
     // res.send(req.body);
 
@@ -96,7 +99,8 @@ router.post('/login', [
         // bcrypt.compare(data to compare, data to be compared to (hash value))
         const passCompare = await bcrypt.compare(password, user.password);
         if(!passCompare){
-            return res.status(400).json({error: "Username or Password may not be correct, Please try again with correct credentials!"});
+            success = false;
+            return res.status(400).json({success, error: "Username or Password may not be correct, Please try again with correct credentials!"});
         }
 
         const data = {
@@ -106,7 +110,8 @@ router.post('/login', [
         }
         // token me id bhej rhe hai
         const authToken = jwt.sign(data, JWT_SECRET);
-        res.json({authToken});
+        success = true;
+        res.json({success, authToken});
 
     }catch(error){
         console.log(error.message);
@@ -119,7 +124,7 @@ router.post('/login', [
 
 router.post('/getUser', fetchUser, async(req,res)=>{
     try{
-        userId = req.user.id;
+        const userId = req.user.id;
         const user = await User.findById(userId).select("-password");
         // "-password" means all details except password
         res.send(user);

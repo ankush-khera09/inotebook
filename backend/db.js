@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const connectToMongo = ()=>{
-    mongoose.connect("mongodb://127.0.0.1:27017/inotebook");
+    mongoose.connect("mongodb://127.0.0.1:27017/notemate");
     mongoose.connection.on("connected", ()=>{
         console.log("DB Connected");              // if connected, pass this arrow fn & print "DB Connected"
     });
